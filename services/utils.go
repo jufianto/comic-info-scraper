@@ -9,13 +9,13 @@ import (
 	"github.com/chromedp/chromedp"
 )
 
-var defaultTimeout = time.Minute
-var errorMsgFr = "failed to execute tasks %s: %w"
+var defaultTimeout = 2 * time.Minute
+var errorMsgFr = "failed to execute tasks %s: %v"
 
 func RunWithDefaultTimeout(ctx context.Context, actions ...chromedp.Action) error {
-	ctx, cancel := context.WithTimeout(ctx, defaultTimeout)
+	ctxs, cancel := context.WithTimeout(ctx, defaultTimeout)
 	defer cancel()
-	return chromedp.Run(ctx, actions...)
+	return chromedp.Run(ctxs, actions...)
 }
 
 func ReturnErrors(tasks string, err error) error {
