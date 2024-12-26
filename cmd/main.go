@@ -28,11 +28,13 @@ func main() {
 
 	ctx, cancelCtx := context.WithCancel(context.Background())
 	defer cancelCtx()
+	userDataDir := "./userdir"
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.DisableGPU,
 		chromedp.WindowSize(1920, 1080),
 		// chromedp.ExecPath("/home/sv/chrome-linux/chrome"),
+		chromedp.UserDataDir(userDataDir),
 	)
 
 	if !cfgs.GetBool("headless") {
@@ -59,7 +61,7 @@ func main() {
 	log.Println("emulate viewport")
 	if err := chromedp.Run(cdpCtx,
 		chromedp.Emulate(device.Reset),
-		chromedp.EmulateViewport(1920, 1080),
+		chromedp.EmulateViewport(1336, 768),
 	); err != nil {
 		log.Printf("failed to emulate viewport: %v \n", err)
 	}

@@ -18,6 +18,12 @@ func RunWithDefaultTimeout(ctx context.Context, actions ...chromedp.Action) erro
 	return chromedp.Run(ctxs, actions...)
 }
 
+func RunWithTimeout(ctx context.Context, timeout time.Duration, actions ...chromedp.Action) error {
+	ctxs, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	return chromedp.Run(ctxs, actions...)
+}
+
 func ReturnErrors(tasks string, err error) error {
 	errMsg := fmt.Sprintf(errorMsgFr, tasks, err)
 	log.Println(errMsg)
