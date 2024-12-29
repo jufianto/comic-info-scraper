@@ -31,6 +31,14 @@ func main() {
 	defer cancelCtx()
 	userDataDir := "./userdir"
 
+	log.Println("init store")
+	fs, closeFunc, err := store.InitStore(ctx, cfgs.GetString("firestore.project_id"), cfgs.GetString("firestore.service_account_credential"))
+	defer closeFunc()
+	if err != nil {
+		log.Fatalf("failed to init store %v", err)
+		return
+	}
+
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.DisableGPU,
 		chromedp.WindowSize(1920, 1080),
@@ -45,8 +53,8 @@ func main() {
 	alloCtx, cancelAllCtx := chromedp.NewExecAllocator(ctx, opts...)
 	defer cancelAllCtx()
 
-	cdpCtx, cancel := chromedp.NewContext(alloCtx)
-	defer cancel()
+	cdpCtx, cancelChrome := chromedp.NewContext(alloCtx)
+	defer cancelChrome()
 
 	log.Printf("will getting data from site %s", client.URLsite)
 
@@ -56,7 +64,7 @@ func main() {
 
 	time.AfterFunc(time.Hour, func() {
 		fmt.Println("force cancel after 1 minutes browser")
-		cancel()
+		cancelChrome()
 	})
 
 	log.Println("emulate viewport")
@@ -80,7 +88,21 @@ func main() {
 		log.Printf("failed store to yaml file: %v \n", err)
 	}
 
+	log.Println("store to yaml success, try store to firestore")
+	mapStrData, err := store.ConvertToJSON(results)
+	if err != nil {
+		log.Fatalf("failed to convert to json", err)
+		return
+	}
+	fmt.Println("xx", mapStrData)
+	err = fs.StoreComic(ctx, cfgs.GetString("firestore.collection"), mapStrData)
+	if err != nil {
+		log.Fatalf("failed to store data to firestore %v", err)
+		return
+	}
 	log.Println("sleep for 1 minutes")
 	time.Sleep(time.Minute)
 
+	log.Println("shutdown browser")
+	cancelChrome()
 }

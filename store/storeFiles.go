@@ -20,8 +20,9 @@ func StoreToYaml(result []cl.InfoComic) (dataB []byte, err error) {
 	}
 
 	infoYaml := cl.FileInfoComic{
-		Total: len(result),
-		Comic: result,
+		Total:     len(result),
+		Comic:     result,
+		Timestamp: time.Now(),
 	}
 
 	data, err := yaml.Marshal(infoYaml)

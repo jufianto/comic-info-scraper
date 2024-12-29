@@ -12,10 +12,8 @@ func TestInitStore(t *testing.T) {
 	ctx := context.Background()
 	accountCredentials := "../cmd/config/firestore-gcp-access.json"
 
-	clientDs, err := InitStore(ctx, accountCredentials, "")
-	if clientDs != nil {
-		defer clientDs.CloseFunc()
-	}
+	clientDs, close, err := InitStore(ctx, "my-personal-labs-395004", accountCredentials)
+	defer close()
 
 	assert.NoError(t, err)
 	assert.NotNil(t, clientDs)

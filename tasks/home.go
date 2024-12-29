@@ -16,24 +16,22 @@ func GetTestAction() chromedp.Action {
 }
 
 func GetAllNodesHome(nodes *[]*cdp.Node) chromedp.Action {
-	return chromedp.Nodes(`//h3[contains(text(), "Latest Update")]//parent::div/following-sibling::div[1]/div`, nodes)
+	return chromedp.Nodes(`//h3[contains(text(), "Latest Update")]//parent::div/following-sibling::div[1]/div`, nodes, chromedp.NodeReady)
 }
 
 func GetTitle(index int, result *string) chromedp.Action {
 	sel := fmt.Sprintf(`(//h3[contains(text(), "Latest Update")]//parent::div/following-sibling::div[1]/div//span/a)[%d]`, index)
-	fmt.Println("sel", sel)
 	// Use the correct query selector to target the title based on the structure
 	return chromedp.Text(sel, result, chromedp.NodeReady, chromedp.NodeVisible)
 }
 
 func GetChapter(index int, result *string) chromedp.Action {
 	sel := fmt.Sprintf(`(//h3[contains(text(), "Latest Update")]/parent::div/following-sibling::div[1]/div[%d]//p[contains(text(), "Chapter")])[1]`, index)
-	fmt.Println("sel", sel)
 	return chromedp.Text(sel, result, chromedp.NodeReady, chromedp.NodeVisible)
 }
 
 func CheckNextPages(nodeNext *[]*cdp.Node) chromedp.Action {
-	return chromedp.Nodes(`//a[contains(text(), "Next")]`, nodeNext, chromedp.AtLeast(0))
+	return chromedp.Nodes(`//a[contains(text(), "Next")]`, nodeNext, chromedp.NodeReady, chromedp.AtLeast(0))
 }
 
 func ClickNextPages() chromedp.Action {

@@ -1,9 +1,9 @@
-url: "https://nightsup.net/"
+url: "https://asuracomic.net/"
 description:
 max-comics-scrape: 30
 headless: false
 
 firestore:
-  service_account_files:
-    - "cmd/config/firestore-gcp-access.json"
+  service_account_credential: "cmd/config/firestore-gcp-access.json"
   collection: "comics-scaraper"
+  project_id: "my-personal-labs-395004"

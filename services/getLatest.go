@@ -28,6 +28,11 @@ func (c *Client) GetHomeLatests(ctx context.Context) (results []InfoComic, err e
 	for nextPage {
 		var allNodes []*cdp.Node
 		fmt.Println("get all nodes home")
+
+		if pages > 1 {
+			time.Sleep(3 * time.Second) // to wait page full load. TODO: find another by using chromedp listen target
+		}
+
 		if err := RunWithDefaultTimeout(ctx, tasks.GetAllNodesHome(&allNodes)); err != nil {
 			return nil, SetError("GetAllNodes", err)
 		}
@@ -37,7 +42,7 @@ func (c *Client) GetHomeLatests(ctx context.Context) (results []InfoComic, err e
 		for key, _ := range allNodes {
 			var title, chapter string
 
-			fmt.Println("key", key+1)
+			log.Println("iterate", key+1)
 
 			if err := RunWithDefaultTimeout(ctx, tasks.GetTitle(key+1, &title)); err != nil {
 				return nil, SetError("getTitle", err)
@@ -86,6 +91,7 @@ func (c *Client) GetHomeLatests(ctx context.Context) (results []InfoComic, err e
 			if err := RunWithDefaultTimeout(ctx, tasks.ClickNextPages()); err != nil {
 				return nil, SetError("ClickNextPages", err)
 			}
+			pages++
 		} else {
 			nextPage = false
 		}
