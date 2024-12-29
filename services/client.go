@@ -1,5 +1,7 @@
 package services
 
+import "time"
+
 type Client struct {
 	URLsite  string
 	Headfull bool
@@ -26,6 +28,11 @@ func (c *Client) GetHeadfullStatus() bool {
 }
 
 type InfoComic struct {
-	Title       string
-	LastChapter string
+	Title       string `yaml:"title" json:"title"`
+	LastChapter string `yaml:"last_chapter" json:"last_chapter"`
+}
+type FileInfoComic struct {
+	Total     int         `yaml:"total" json:"total"`
+	Comic     []InfoComic `yaml:"comic" json:"comic"`
+	Timestamp time.Time   `yaml:"timestamp" json:"timestamp"`
 }

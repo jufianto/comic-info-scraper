@@ -1,4 +1,9 @@
-url: "https://asura.gg/"
+url: "https://nightsup.net/"
 description:
 max-comics-scrape: 30
 headless: false
+
+firestore:
+  service_account_files:
+    - "cmd/config/firestore-gcp-access.json"
+  collection: "comics-scaraper"
