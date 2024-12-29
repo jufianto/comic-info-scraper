@@ -24,7 +24,7 @@ func RunWithTimeout(ctx context.Context, timeout time.Duration, actions ...chrom
 	return chromedp.Run(ctxs, actions...)
 }
 
-func ReturnErrors(tasks string, err error) error {
+func SetError(tasks string, err error) error {
 	errMsg := fmt.Sprintf(errorMsgFr, tasks, err)
 	log.Println(errMsg)
 	return fmt.Errorf(errMsg)

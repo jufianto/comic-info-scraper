@@ -11,6 +11,7 @@ import (
 
 	"github.com/jufianto/comic-info-scraper/cmd/config"
 	cl "github.com/jufianto/comic-info-scraper/services"
+	"github.com/jufianto/comic-info-scraper/store"
 )
 
 func main() {
@@ -66,7 +67,20 @@ func main() {
 		log.Printf("failed to emulate viewport: %v \n", err)
 	}
 
-	if err := client.GetHomeLatests(cdpCtx); err != nil {
+	results, err := client.GetHomeLatests(cdpCtx)
+	if err != nil {
 		log.Println("failed to run get home services", err)
+		return
 	}
+
+	log.Printf("success get the results, total results %d \n", len(results))
+
+	_, err = store.StoreToYaml(results)
+	if err != nil {
+		log.Printf("failed store to yaml file: %v \n", err)
+	}
+
+	log.Println("sleep for 1 minutes")
+	time.Sleep(time.Minute)
+
 }

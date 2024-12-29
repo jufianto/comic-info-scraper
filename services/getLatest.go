@@ -11,12 +11,12 @@ import (
 )
 
 // TODO: store cache and cookies for faster access
-func (c *Client) GetHomeLatests(ctx context.Context) error {
+func (c *Client) GetHomeLatests(ctx context.Context) (results []InfoComic, err error) {
 
 	log.Println("navigating to homepage ", c.URLsite)
 
 	if err := RunWithDefaultTimeout(ctx, tasks.Navigate(c.URLsite)); err != nil {
-		// return ReturnErrors("navigate", err)
+		// return SetError("navigate", err)
 		log.Println("failed to navigate")
 	}
 
@@ -24,13 +24,12 @@ func (c *Client) GetHomeLatests(ctx context.Context) error {
 
 	nextPage := true
 	pages := 1
-	var results []InfoComic
 
 	for nextPage {
 		var allNodes []*cdp.Node
 		fmt.Println("get all nodes home")
 		if err := RunWithDefaultTimeout(ctx, tasks.GetAllNodesHome(&allNodes)); err != nil {
-			return ReturnErrors("GetAllNodes", err)
+			return nil, SetError("GetAllNodes", err)
 		}
 
 		fmt.Println("Have total ", len(allNodes))
@@ -41,10 +40,10 @@ func (c *Client) GetHomeLatests(ctx context.Context) error {
 			fmt.Println("key", key+1)
 
 			if err := RunWithDefaultTimeout(ctx, tasks.GetTitle(key+1, &title)); err != nil {
-				return ReturnErrors("getTitle", err)
+				return nil, SetError("getTitle", err)
 			}
 			if err := RunWithDefaultTimeout(ctx, tasks.GetChapter(key+1, &chapter)); err != nil {
-				ReturnErrors("getChapter", err)
+				SetError("getChapter", err)
 			}
 			log.Printf("Got Title %d: %s Last Chapter: %s ", key+1, title, chapter)
 			result := InfoComic{
@@ -58,7 +57,7 @@ func (c *Client) GetHomeLatests(ctx context.Context) error {
 		log.Println("check if next pages exists")
 		var nodesNext []*cdp.Node
 		if err := RunWithTimeout(ctx, 5*time.Second, tasks.CheckNextPages(&nodesNext)); err != nil {
-			return ReturnErrors("CheckNextPages", err)
+			return nil, SetError("CheckNextPages", err)
 		}
 		if len(nodesNext) > 0 {
 
@@ -70,9 +69,9 @@ func (c *Client) GetHomeLatests(ctx context.Context) error {
 				log.Println("failed tp get attribute", err)
 				if len(results) > 0 {
 					// if already have the result, return immediately
-					return nil
+					return results, nil
 				}
-				return ReturnErrors("GetAttribute", err)
+				return nil, SetError("GetAttribute", err)
 			}
 
 			fmt.Println("get attribute href", attr)
@@ -85,7 +84,7 @@ func (c *Client) GetHomeLatests(ctx context.Context) error {
 			nextPage = true
 			time.Sleep(2 * time.Second)
 			if err := RunWithDefaultTimeout(ctx, tasks.ClickNextPages()); err != nil {
-				return ReturnErrors("ClickNextPages", err)
+				return nil, SetError("ClickNextPages", err)
 			}
 		} else {
 			nextPage = false
@@ -96,8 +95,5 @@ func (c *Client) GetHomeLatests(ctx context.Context) error {
 	for _, res := range results {
 		fmt.Println("Title", res.Title, "Last Chapter", res.LastChapter)
 	}
-
-	time.Sleep(time.Hour)
-
-	return nil
+	return results, nil
 }
