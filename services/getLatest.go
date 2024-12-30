@@ -2,8 +2,9 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -27,7 +28,7 @@ func (c *Client) GetHomeLatests(ctx context.Context) (results []InfoComic, err e
 
 	for nextPage {
 		var allNodes []*cdp.Node
-		fmt.Println("get all nodes home")
+		log.Println("get all nodes home")
 
 		if pages > 1 {
 			time.Sleep(3 * time.Second) // to wait page full load. TODO: find another by using chromedp listen target
@@ -37,20 +38,29 @@ func (c *Client) GetHomeLatests(ctx context.Context) (results []InfoComic, err e
 			return nil, SetError("GetAllNodes", err)
 		}
 
-		fmt.Println("Have total ", len(allNodes))
+		log.Println("Have total ", len(allNodes))
+		reNumber := regexp.MustCompile(`\d+`)
+		reRemoveNumber := regexp.MustCompile(`\b\w*\d\w*\b`)
+		rpl := strings.NewReplacer("-", " ", "/series/", "")
 
-		for key, _ := range allNodes {
+		for key := range allNodes {
 			var title, chapter string
 
-			log.Println("iterate", key+1)
-
-			if err := RunWithDefaultTimeout(ctx, tasks.GetTitle(key+1, &title)); err != nil {
+			if err := RunWithDefaultTimeout(ctx, tasks.GetTitleAttributeHref(key+1, &title)); err != nil {
 				return nil, SetError("getTitle", err)
 			}
 			if err := RunWithDefaultTimeout(ctx, tasks.GetChapter(key+1, &chapter)); err != nil {
-				SetError("getChapter", err)
+					SetError("getChapter", err)
 			}
-			log.Printf("Got Title %d: %s Last Chapter: %s ", key+1, title, chapter)
+
+			title = rpl.Replace(title)
+
+			title = reRemoveNumber.ReplaceAllString(title, "")
+			title = strings.TrimSpace(title)
+
+			chapter = reNumber.FindString(chapter)
+
+			// log.Printf("Got Title %d: %s Last Chapter: %s ", key+1, title, chapter)
 			result := InfoComic{
 				Title:       title,
 				LastChapter: chapter,
@@ -79,8 +89,6 @@ func (c *Client) GetHomeLatests(ctx context.Context) (results []InfoComic, err e
 				return nil, SetError("GetAttribute", err)
 			}
 
-			fmt.Println("get attribute href", attr)
-
 			if attr == "#" {
 				nextPage = false
 				break
@@ -97,9 +105,6 @@ func (c *Client) GetHomeLatests(ctx context.Context) (results []InfoComic, err e
 		}
 	}
 
-	fmt.Println("Have total comic", len(results))
-	for _, res := range results {
-		fmt.Println("Title", res.Title, "Last Chapter", res.LastChapter)
-	}
+	log.Println("Have total comic", len(results))
 	return results, nil
 }

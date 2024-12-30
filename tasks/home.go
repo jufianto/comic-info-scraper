@@ -25,6 +25,12 @@ func GetTitle(index int, result *string) chromedp.Action {
 	return chromedp.Text(sel, result, chromedp.NodeReady, chromedp.NodeVisible)
 }
 
+func GetTitleAttributeHref(index int, result *string) chromedp.Action {
+	sel := fmt.Sprintf(`(//h3[contains(text(), "Latest Update")]//parent::div/following-sibling::div[1]/div//span/a)[%d]`, index)
+	var ok bool
+	return chromedp.AttributeValue(sel, "href", result, &ok)
+}
+
 func GetChapter(index int, result *string) chromedp.Action {
 	sel := fmt.Sprintf(`(//h3[contains(text(), "Latest Update")]/parent::div/following-sibling::div[1]/div[%d]//p[contains(text(), "Chapter")])[1]`, index)
 	return chromedp.Text(sel, result, chromedp.NodeReady, chromedp.NodeVisible)

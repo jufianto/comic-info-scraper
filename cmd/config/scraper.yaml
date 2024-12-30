@@ -4,6 +4,7 @@ max-comics-scrape: 30
 headless: false
 
 firestore:
+  enabled: false
   service_account_credential: "cmd/config/firestore-gcp-access.json"
   collection: "comics-scaraper"
   project_id: "my-personal-labs-395004"

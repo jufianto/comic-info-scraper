@@ -3,6 +3,7 @@ package store
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -35,7 +36,7 @@ func StoreToYaml(result []cl.InfoComic) (dataB []byte, err error) {
 		return nil, fmt.Errorf("failed to write data %s", err)
 	}
 
-	fmt.Printf("success store data to file %s\n", fileName)
+	log.Printf("success store data to file %s\n", fileName)
 	return data, nil
 }
 

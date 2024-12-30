@@ -13,12 +13,10 @@ type DataStore struct {
 }
 
 func (ds *DataStore) StoreComic(ctx context.Context, collectionName string, data interface{}) error {
-	doc, wr, err := ds.firestore.Collection(collectionName).Add(ctx, data)
+	_, _, err := ds.firestore.Collection(collectionName).Add(ctx, data)
 	if err != nil {
 		return fmt.Errorf("failed to writing data: %v", err)
 	}
-
-	fmt.Println("WriteResult: ", doc, wr)
 	return nil
 }
 

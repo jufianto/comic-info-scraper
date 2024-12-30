@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/chromedp/chromedp"
@@ -31,12 +32,22 @@ func main() {
 	defer cancelCtx()
 	userDataDir := "./userdir"
 
-	log.Println("init store")
-	fs, closeFunc, err := store.InitStore(ctx, cfgs.GetString("firestore.project_id"), cfgs.GetString("firestore.service_account_credential"))
-	defer closeFunc()
-	if err != nil {
-		log.Fatalf("failed to init store %v", err)
-		return
+	var fs *store.DataStore
+	var closeFunc func()
+	isFirestoreEnabled := cfgs.GetBool("firestore.enabled")
+	if isFirestoreEnabled {
+		log.Println("init store")
+		fs, closeFunc, err = store.InitStore(ctx, cfgs.GetString("firestore.project_id"), cfgs.GetString("firestore.service_account_credential"))
+		defer closeFunc()
+		if err != nil {
+			log.Fatalf("failed to init store %v", err)
+			return
+		}
+	}
+
+	// check if folder results exist
+	if _, err := os.Stat("results"); os.IsNotExist(err) {
+		os.Mkdir("results", os.ModePerm)
 	}
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
@@ -63,11 +74,10 @@ func main() {
 	}
 
 	time.AfterFunc(time.Hour, func() {
-		fmt.Println("force cancel after 1 minutes browser")
+		fmt.Println("force cancel after 1 hour browser")
 		cancelChrome()
 	})
 
-	log.Println("emulate viewport")
 	if err := chromedp.Run(cdpCtx,
 		chromedp.Emulate(device.Reset),
 		chromedp.EmulateViewport(1336, 768),
@@ -88,20 +98,25 @@ func main() {
 		log.Printf("failed store to yaml file: %v \n", err)
 	}
 
-	log.Println("store to yaml success, try store to firestore")
-	mapStrData, err := store.ConvertToJSON(results)
-	if err != nil {
-		log.Fatalf("failed to convert to json", err)
-		return
+	log.Println("store to yaml success")
+
+	if isFirestoreEnabled {
+		mapStrData, err := store.ConvertToJSON(results)
+		if err != nil {
+			log.Fatalf("failed to convert to json: %v", err)
+			return
+		}
+		log.Println("try store to firestore")
+		err = fs.StoreComic(ctx, cfgs.GetString("firestore.collection"), mapStrData)
+		if err != nil {
+			log.Fatalf("failed to store data to firestore %v", err)
+			return
+		}
+		log.Println("success store to firestore")
 	}
-	fmt.Println("xx", mapStrData)
-	err = fs.StoreComic(ctx, cfgs.GetString("firestore.collection"), mapStrData)
-	if err != nil {
-		log.Fatalf("failed to store data to firestore %v", err)
-		return
-	}
-	log.Println("sleep for 1 minutes")
-	time.Sleep(time.Minute)
+
+	log.Println("sleep for a bit")
+	time.Sleep(3 * time.Second)
 
 	log.Println("shutdown browser")
 	cancelChrome()
