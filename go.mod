@@ -1,11 +1,9 @@
 module github.com/jufianto/comic-info-scraper
 
-go 1.23
-
-toolchain go1.23.4
+go 1.23.4
 
 require (
-	cloud.google.com/go/firestore v1.17.0
+	cloud.google.com/go/firestore v1.16.0
 	github.com/chromedp/cdproto v0.0.0-20241222144035-c16d098c0fb6
 	github.com/chromedp/chromedp v0.11.2
 	github.com/spf13/viper v1.19.0

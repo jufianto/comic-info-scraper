@@ -16,3 +16,4 @@
 
 cmd/userdir
 userdir/
+vendor/
